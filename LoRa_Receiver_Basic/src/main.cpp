@@ -39,10 +39,10 @@ char rxpacket[BUFFER_SIZE];
 static RadioEvents_t RadioEvents;
 
 int16_t txNumber;
-int16_t rssi, rxSize;
+int16_t rssi, rxSize, snr;
 bool received_packet = false;
 
-void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr);
+void OnRxDone(uint8_t *payload, uint16_t size, int16_t _rssi, int8_t _snr);
 
 void setup()
 {
@@ -71,27 +71,34 @@ void loop()
 
   if (received_packet)
   {
-    // Radio.Sleep();
+     Radio.Sleep();
     // Radio.Standby();
 
     Serial.print("[RX]");
     Serial.print("[RSSI]");
     Serial.print(rssi);
+    Serial.print("dBm [SNR]");
+    Serial.print(snr);
     Serial.print("[DATA][");
     Serial.print(rxSize);
-    Serial.print("]");
+    Serial.print("] "); 
     Serial.print(rxpacket);
     Serial.println();
+
+    received_packet = false;
+    turnOffRGB();
   }
 }
 
-void OnRxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr)
+void OnRxDone(uint8_t *payload, uint16_t size, int16_t _rssi, int8_t _snr)
 {
-  rssi = rssi;
+  turnOnRGB(COLOR_RECEIVED, 0);
+
+  rssi = _rssi;
+  snr = _snr;
   rxSize = size;
   memcpy(rxpacket, payload, size);
   rxpacket[size] = '\0';
-  turnOnRGB(COLOR_RECEIVED, 0);
 
   received_packet = true;
 }
